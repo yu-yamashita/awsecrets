@@ -11,15 +11,17 @@ module Awsecrets
     @region = region
     @credentials = nil
 
-    # 1. Command Line Options
+    # 1. IAM Role
+    load_role
+    # 2. Command Line Options
     load_options if load_method_args
-    # 2. Environment Variables
+    # 3. Environment Variables
     load_env
-    # 3. YAML file (secrets.yml)
+    # 4. YAML file (secrets.yml)
     load_yaml
-    # 4. The AWS credentials file
+    # 5. The AWS credentials file
     load_creds
-    # 5. The CLI configuration file
+    # 6. The CLI configuration file
     load_config
 
     Aws.config[:region] = @region
@@ -87,4 +89,10 @@ module Awsecrets
     aws_config = AWSConfig.profiles['default'] unless aws_config
     @region = aws_config.config_hash[:region] if aws_config
   end
+
+  def self.load_role
+    return unless @credentials.nil?
+    @credentials = AWS.config(:credential_provider => AWS::Core::CredentialProviders::EC2Provider.new)
+  end
+  
 end
